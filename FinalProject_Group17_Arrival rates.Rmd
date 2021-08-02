@@ -1,0 +1,155 @@
+---
+title: "DriveInRate and SymptomsRate"
+author: '307994947,307983114,315625301'
+date: "12 12 2020"
+output: html_document
+---
+```{r libraries, include=F,echo=F}
+library(fitdistrplus)
+library(magrittr)
+
+```
+###DriveInRate
+
+```{r DriveInRate setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+path <- choose.files()
+table <- read.csv(path, TRUE)
+
+DIdata <- c(table$DriveIn)
+
+library(chron)
+
+Vnew <- format(strptime(DIdata, "%I:%M:%S %p"), format="%H:%M:%S")
+DItimeVec <- 60 *24* as.numeric(times(Vnew))
+
+DImat <- data.matrix(DItimeVec)
+
+vecDI <- c()
+for (i in 1:length(DItimeVec)-1) {
+vecDI[i] =  DImat[i+1,1]-DImat[i,1]
+}
+```
+
+#General Plots
+
+We wanted to see an overview for our data
+
+```{r DriveInRate,include=TRUE,echo=FALSE}
+par(mfrow=c(1,3)) # defines 2 plots on the same window
+plot(vecDI,ylab="Sample values") # plot ( left graph )
+hist(vecDI, ylab="Frequency ") # histogram (right graph)
+boxplot(vecDI)
+
+
+```
+
+
+##Check for distribution fit - EXP:
+First step was to check exponential fit, because it is the most common distribution for arrivals.
+
+```{r fitting exp DriveInRate,include=TRUE,echo=FALSE}
+expFit<-fitdist(vecDI,"exp") 
+summary(expFit) 
+
+```
+
+The lambda is : 
+
+```{r  exp DriveInRate,include=TRUE,echo=FALSE}
+expFit$estimate[1]  
+```
+
+We wanted to check our data comparing to exp graph
+
+```{r grap exp DriveInRate,include=TRUE,echo=FALSE}
+expFit<- fitdist(vecDI,"exp") # fit for poisson
+summary(expFit)
+plotdist(vecDI,"exp",para=list(rate=expFit$estimate[1])) 
+```
+
+we see that there is a great similarity so we will do a Goodness-of-fit Test to make sure : 
+
+```{r test DriveInRate,include=TRUE,echo=FALSE}
+expgof<- gofstat(expFit)%>%print()
+expgof$kstest%>%print()
+
+```
+
+We can see that the Goodness of fit test is not rejected, therefore our data comes from exponential distribution and our value is :
+rate = 0.557 
+
+
+###SymptomsRate
+
+```{r SymptomsRatesetup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+MDAdata<- c(table$Symptoms)
+
+
+library(chron)
+V <- format(strptime(MDAdata, "%I:%M:%S %p"), format="%H:%M:%S")
+symptomsTimeVec <- 60 *24* as.numeric(times(V))
+
+
+Symptomsmat <- data.matrix(symptomsTimeVec)
+
+vecSymptoms <- c()
+for (i in 1:length(symptomsTimeVec)-1) {
+vecSymptoms[i] =  Symptomsmat[i+1,1]-Symptomsmat[i,1]
+}
+
+```
+
+
+#General Plots
+
+We wanted to see an overview for our data
+
+```{r SymptomsRate,include=TRUE,echo=FALSE}
+par(mfrow=c(1,3)) # defines 2 plots on the same window
+plot(vecSymptoms,ylab="Sample values") # plot ( left graph )
+hist(vecSymptoms, ylab="Frequency ") # histogram (right graph)
+boxplot(vecSymptoms)
+
+
+```
+
+
+##Check for distribution fit - EXP:
+First step was to check exponential fit, because it is the most common distribution for arrivals.
+
+```{r fitting exp SymptomsRate,include=TRUE,echo=FALSE}
+expFit<-fitdist(vecSymptoms,"exp") 
+summary(expFit) 
+
+```
+
+The rate is : 
+
+```{r  exp SymptomsRate,include=TRUE,echo=FALSE}
+expFit$estimate[1]  
+```
+
+We wanted to check our data comparing to exp graph
+
+```{r grap exp SymptomsRate,include=TRUE,echo=FALSE}
+expFit<- fitdist(vecSymptoms,"exp") # fit for poisson
+summary(expFit)
+plotdist(vecSymptoms,"exp",para=list(rate=expFit$estimate[1])) 
+```
+
+
+we see that there is a great similarity so we will do a Goodness-of-fit Test to make sure : 
+
+```{r test SymptomsRate,include=TRUE,echo=FALSE}
+expgof<- gofstat(expFit)%>%print()
+expgof$kstest%>%print()
+
+```
+
+We can see that the Goodness of fit test is not rejected, therefore our data comes from exponential distribution and our value is :
+rate = 0.463
+
